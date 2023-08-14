@@ -2,6 +2,15 @@
 #include "Arduino.h"
 #include "ODriveArduino.h"
 
+static const int kMotorOffsetFloat = 2;
+static const int kMotorStrideFloat = 28;
+static const int kMotorOffsetInt32 = 0;
+static const int kMotorStrideInt32 = 4;
+static const int kMotorOffsetBool = 0;
+static const int kMotorStrideBool = 4;
+static const int kMotorOffsetUint16 = 0;
+static const int kMotorStrideUint16 = 2;
+
 // Print with stream operator
 template<class T> inline Print& operator <<(Print &obj,     T arg) { obj.print(arg);    return obj; }
 template<>        inline Print& operator <<(Print &obj, float arg) { obj.print(arg, 4); return obj; }
@@ -33,7 +42,7 @@ void ODriveArduino::SetCurrent(int motor_number, float current) {
     serial_ << "c " << motor_number << " " << current << "\n";
 }
 
-void ODriveArduino::TrapezoidalMove(int motor_number, float position) {
+void ODriveArduino::TrapezoidalMove(int motor_number, float position){
     serial_ << "t " << motor_number << " " << position << "\n";
 }
 
@@ -41,28 +50,23 @@ float ODriveArduino::readFloat() {
     return readString().toFloat();
 }
 
-float ODriveArduino::GetVelocity(int motor_number) {
+float ODriveArduino::GetVelocity(int motor_number){
 	serial_<< "r axis" << motor_number << ".encoder.vel_estimate\n";
 	return ODriveArduino::readFloat();
-}
-
-float ODriveArduino::GetPosition(int motor_number) {
-    serial_ << "r axis" << motor_number << ".encoder.pos_estimate\n";
-    return ODriveArduino::readFloat();
 }
 
 int32_t ODriveArduino::readInt() {
     return readString().toInt();
 }
 
-bool ODriveArduino::run_state(int axis, int requested_state, bool wait_for_idle, float timeout) {
-    int timeout_ctr = (int)(timeout * 10.0f);
+bool ODriveArduino::run_state(int axis, int requested_state, bool wait) {
+    int timeout_ctr = 100;
     serial_ << "w axis" << axis << ".requested_state " << requested_state << '\n';
-    if (wait_for_idle) {
+    if (wait) {
         do {
             delay(100);
             serial_ << "r axis" << axis << ".current_state\n";
-        } while (readInt() != AXIS_STATE_IDLE && --timeout_ctr > 0);
+        } while (readInt() != requested_state && --timeout_ctr > 0);
     }
 
     return timeout_ctr > 0;

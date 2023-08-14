@@ -1,176 +1,10 @@
+# Unreleased Features
+Please add a note of your changes below this heading if you make a Pull Request.
 
-## [0.5.6] - 2023-04-29
-
-### Fixed
-
-* Fixed race condition in homing sequence that was causing strange behaviour.  Fixes [#634](https://github.com/odriverobotics/ODrive/issues/634)]  
-* When using a load encoder, CAN will report the correct position and velocity.
-* When using a load encoder, homing will reset the correct linear position.  Fixes [#651](https://github.com/odriverobotics/ODrive/issues/651)
-* Implemented CAN controller error message, which was previously defined but not actually implemented.
-* Get Vbus Voltage message updated to match ODrive Pro's CANSimple implementation.
-* `vel_setpoint` and `torque_setpoint` will be clamped to `vel_limit` and the active torque limit.  Fixes [#647](https://github.com/odriverobotics/ODrive/issues/647)
-
-### Added
-
-* Added public `controller.get_anticogging_value(uint32)` fibre function to index into the the cogging map.  Fixes [#690](https://github.com/odriverobotics/ODrive/issues/690)
-* Added Get ADC Voltage message to CAN (0x1C).  Send the desired GPIO number in byte 1, and the ODrive will respond with the ADC voltage from that pin (if previously configured for analog)
-* Added CAN heartbeat message flags for motor, controller, and encoder error.  If flag is true, fetch the corresponding error with the respective message.
-* Added scoped enums, e.g. `CONTROL_MODE_POSITION_CONTROL` can be used as `ControlMode.POSITION_CONTROL`
-* Added more cyclic messages to can.  Use the `rate_ms` values in `<odrv>.<axis>.config.can` to set the cycle rate of the message in milliseconds.  Set a rate to 0 to disable sending.  The following variables are avaialble:
-
-Command ID | Rate Variable | Message Name
-:-- | :-- | :--
- 0x01 | `heartbeat_rate_ms` | Heartbeat
- 0x09 | `encoder_rate_ms` | Get Encoder Estimates
- 0x03 | `motor_error_rate_ms` | Get Motor Error
- 0x04 | `encoder_error_rate_ms` | Get Encoder Error
- 0x1D | `controller_error_rate_ms` | Get Controller Error
- 0x05 | `sensorless_error_rate_ms` | Get Sensorless Error
- 0x0A | `encoder_count_rate_ms` | Get Encoder Count
- 0x14 | `iq_rate_ms` | Get Iq
- 0x15 | `sensorless_rate_ms` | Get Sensorless Estimates
- 0x17 | `bus_vi_rate_ms` | Get Bus Voltage Current
-
-### Changed
-
-* Improved can_generate_dbc.py file and resultant .dbc.  Now supports 8 ODrive axes (0..7) natively
-* Add units and value tables to every signal in odrive-cansimple.dbc
-* Autogenerate odrive-cansimple.dbc on compile
-
-## [0.5.5] - 2022-08-11
-
-* CANSimple messages which previously required the rtr bit to be set will now also respond if DLC = 0
-* Ensure endstops update before being checked for errors, to prevent [#625](https://github.com/odriverobotics/ODrive/issues/625)
-* Reset trajectory_done_ during homing to ensure a new trajectory is actually computed [#634](https://github.com/odriverobotics/ODrive/issues/634)
-* Use `input_xxx` as a DC offset in tuning mode
-* Sync `steps_` with input pos.
-* Trigger reset of input_pos and pos_setpoint to estimate when changing control mode into position control
-
-## [0.5.4] - 2021-10-12
-
-### Fixed
-* Some ASCII protocol commands (e.g. `w axis0.requested_state 4`) resulted in `not implemented` due to an issue with the CI compiler. A workaround was made to fix this.
-* Fixed bad response of some ASCII procotol commands (e.g. `r axis0.error` returned `0d` instead of `0`).
-
-### Added
-* Added `<axis>.controller.config.vel_integrator_limit`
-* Allow setting controller gains on CAN Simple
-
-## [0.5.3] - 2021-09-03
-
-### Fixed
-* ASCII protocol commands with multiline responses (`i`, `h`) now return the expected response (in v0.5.2 the response was corrupted)
-* odrivetool no longer shows the message `<Task pending coro=... running at ...>` when closing
-* Homing used to erroneously complete with `is_homed == True` even if it failed for some reason
-* When entering closed loop control in trapezoidal trajectory mode the axis no longer snaps to the 0 position
-* Fix python DFU firmware version prerelease status resolution to use correct attribute
-* Fixed firmware compiled-in version number
-
-### Added
-* `brake_resistor_current` added to interface for reading the commanded brake resistor current
-
-### Changed
-* Removed `odrivetool generate-code`. This feature was broken in 0.5.2. Use [`interface_generator.py`](https://github.com/odriverobotics/ODrive/blob/master/tools/fibre-tools/interface_generator.py) instead (see Tupfile.lua for examples).
-* Firmware boots on devices with unset OTP.
-* Changed CAN heartbeat message to include "trajectory done" flag
-
-## [0.5.2] - 2021-05-21
-
-### Fixed
-* spinout error is no longer sticky and doesn't trigger on static torque loads due to I^2*R electrical power
-* Step and direction mode resets position when entering closed loop just like `input_pos` does
-* CAN baud rate setting is now correctly handled
-* `odrivetool dfu` works properly when an ODrive is flashed with the `dfu` switch set to "dfu".
-* `odrivetool dfu` now erases the entire flash memory before flashing firmware. This ensures that old configuration parameters are erased.
-* ASCII and the Native Protocol do not run at the same time on a UART interface. See `odrv0.config.uart0_protocol` and the `STREAM_PROTOCOL_TYPE` enums for details.
-
-### Added
-* `sc` command to ascii protocol to run `odrv.clear_errors()`
-* Added phase balance check to motor calibration and MOTOR_ERROR_UNBALANCED_PHASES to error enums
-* Added polarity and phase offset calibration for hall effect encoders
-* [Mechanical brake support](docs/mechanical-brakes.md)
-* Added periodic sending of encoder position on CAN
-* Support for UART1 on GPIO3 and GPIO4. UART0 (on GPIO1/2) and UART1 can currently not be enabled at the same time.
-* Thermistors now have a 2nd order lowpass filter applied to reduce noise
-* 2-norm current clamping is used for AC induction motors
-* Added spinout detection to detect incorrect encoder offset and CONTROLLER_ERROR_SPINOUT_DETECTED to error enums.
-* Added AARCH64 support to libfibre
-* Tuning input mode added to provide sinusoidal position, velocity, or torque stimulus. See INPUT_MODE_TUNING and the controller class for details.
-* Added torque mirroring to INPUT_MODE_MIRROR
-* `mechanical_power_bandwidth`, `electrical_power_bandwidth`, `spinout_electrical_power_threshold`, `spinout_mechanical_power_threshold` added to `controller.config` for spinout detection.
-* `mechanical_power` and `electrical_power` added to `controller`.
-* Added autogenerated enums header file [ODriveEnums.h](../Arduino/ODriveArduino/ODriveEnums.h) for Arduino use. Created Jinja template and edited Makefile to autogenerate it. Reflected change in Dockerfile and added note in developer-guide markdown file for updating ODriveEnums.h alongside enums.py.
-* Added GetPosition member function in ODriveArduino class to complement existing GetVelocity, SetVelocity, and SetPosition functions.
-
-### Changed
-* Step/dir performance improved! Dual axis step rates up to 250kHz have been tested
-* Apply_config is called for encoders after a successful direction find
-* Full calibration sequence now includes hall polarity calibration if a hall effect encoder is used
-* Modified encoder offset calibration to work correctly when calib_scan_distance is not a multiple of 4pi
-* Moved thermistors from being a top level object to belonging to Motor objects. Also changed errors: thermistor errors rolled into motor errors
-* Use DMA for DRV8301 setup
-* Make NVM configuration code more dynamic so that the layout doesn't have to be known at compile time.
-* GPIO initialization logic was changed. GPIOs now need to be explicitly set to the mode corresponding to the feature that they are used by. See `<odrv>.config.gpioX_mode`.
-* Previously, if two components used the same interrupt pin (e.g. step input for axis0 and axis1) then the one that was configured later would override the other one. Now this is no longer the case (the old component remains the owner of the pin).
-* New control loop architecture:
-  1. TIM8 update interrupt handler (CNT = 0) runs at a high priority and invokes the system level function `sample_cb()` to sample all timing critical inputs (currently only encoder state).
-  2. TIM8 update interrupt handler (CNT = 0) raises an NVIC flag to kick off a lower priority interrupt.
-  3. The control loop interrupt handler checks if all ADC measurements are ready and informs both motor objects about the current measurements.
-  4. The control loop interrupt handler invokes the system level function `control_loop_cb()` which updates all components (encoders, estimators, torque controllers, etc). The data paths between the components are configured by the Axis threads based on the requested state. This replaces the previous architecture where the components were updated inside the Axis threads in `Axis::run_control_loop()`.
-  5. Meanwhile the TIM1 and TIM8 updates for CNT = 3500 will have fired. The control loop interrupt handler thus reads the new ADC measurements and informs both motor objects that a DC calibration event has happened.
-  6. Finally, the control loop interrupt invokes `pwm_update_cb` on both motors to make them update their PWM timing registers.
-* Components that need low level control over PWM timings are implemented by inheriting from the `PhaseControlLaw` interface. Three components currently inherit this interface: `FieldOrientedController`, `ResistanceMeasurementControlLaw` and `InductanceMeasurementControlLaw`.
-* The FOC algorithm is now found in foc.cpp and and is presumably capable of running at a different frequency than the main control tasks (not relevant for ODrive v3).
-* ACIM estimator was consolidated into a separate component `<odrv>.acim_estimator`.
-* The Automatic Output Enable (AOE) flag of TIM1/TIM8 is used to achieve glitch-free motor arming.
-* Sensorless mode was merged into closed loop control mode. Use `<axis>.enable_sensorless_mode` to disable the use of an encoder.
-* More informative profiling instrumentation was added.
-* A system-level error property was introduced.
-* Added `torque_mirror_ratio` and use it to feed-forward `controller_.torque_output` in `INPUT_MODE_MIRROR`
-* Accumulate integer steps in step/dir to avoid float precision errors
-* Circular setpoint mode must be enabled when the step/dir interface is used.
-* Replaced inline enum in ODriveArduino class by including new autogenerated ODriveEnums.h header file.
-* Changed the example ODriveArduinoTest.ino file to reflect the new GetPosition member function. Also removed the scope resolution operator to access the enums as it can now be accessed from the global namespace.
-* `save_configuration()` reboots the board.
-
-### API Migration Notes
-* `axis.config.turns_per_step` changed to `axis.controller.config.steps_per_circular_range`
-* `odrive.axis.fet_thermistor`, `odrive.axis.motor_thermistor` moved to `odrive.axis.motor` object
-* `enable_uart` and `uart_baudrate` were renamed to `enable_uart0` and `uart0_baudrate`.
-* `enable_i2c_instead_of_can` was replaced by the separate settings `enable_i2c0` and `enable_can0`.
-* `<axis>.motor.gate_driver` was moved to `<axis>.gate_driver`.
-* `<axis>.min_endstop.pullup` and `<axis>.max_endstop.pullup` were removed. Use `<odrv>.config.gpioX_mode = GPIO_MODE_DIGITAL / GPIO_MODE_DIGITAL_PULL_UP / GPIO_MODE_DIGITAL_PULL_DOWN` instead.
-* `<axis>.config.can_node_id` was moved to `<axis>.config.can.node_id`
-* `<axis>.config.can_node_id_extended` was moved to `<axis>.config.can.is_extended`
-* `<axis>.config.can_heartbeat_rate_ms` was moved to `<axis>.config.can.heartbeat_rate_ms`
-* `<odrv>.get_oscilloscope_val()` was moved to `<odrv>.oscilloscope.get_val()`.
-* Several error flags from `<odrv>.<axis>.error` were removed. Some were moved to `<odrv>.error` and some are no longer relevant because implementation details changed.
-* Several error flags from `<odrv>.<axis>.motor.error` were removed. Some were moved to `<odrv>.error` and some are no longer relevant because implementation details changed.
-* `<axis>.lockin_state` was removed as the lockin implementation was replaced by a more general open loop control block (currently not exposed on the API).
-* `AXIS_STATE_SENSORLESS_CONTROL` was removed. Use `AXIS_STATE_CLOSED_LOOP_CONTROL` instead with `<odrv>.enable_sensorless_mode = True`.
-* `<axis>.config.startup_sensorless_control` was removed. Use `<axis>.config.startup_closed_loop_control` instead with `<odrv>.enable_sensorless_mode = True`.
-* `<axis>.clear_errors()` was replaced by the system-wide function `<odrv>.clear_errors()`.
-* `<axis>.armed_state` was replaced by `<axis>.is_armed`.
-* Several properties in `<axis>.motor.current_control` were changed to read-only.
-* `<axis>.motor.current_control.Ibus` was moved to `<axis>.motor.I_bus`.
-* `<axis>.motor.current_control.max_allowed_current` was moved to `<axis>.motor.max_allowed_current`.
-* `<axis>.motor.current_control.overcurrent_trip_level` was removed.
-* `<axis>.motor.current_control.acim_rotor_flux` was moved to `<axis>.acim_estimator.rotor_flux`.
-* `<axis>.motor.current_control.async_phase_vel` was moved to `<axis>.acim_estimator.stator_phase_vel`.
-* `<axis>.motor.current_control.async_phase_offset` was moved to `<axis>.acim_estimator.phase`.
-* `<axis>.motor.timing_log` was removed in favor of `<odrv>.task_times` and `<odrv>.<axis>.task_times`.
-* `<axis>.motor.config.direction` was moved to `<axis>.encoder.config.direction`.
-* `<axis>.motor.config.acim_slip_velocity` was moved to `<axis>.acim_estimator.config.slip_velocity`.
-* Several properties were changed to readonly.
-* `<axis>.encoder.config.offset` was renamed to ``<axis>.encoder.config.phase_offset`
-* `<axis>.encoder.config.offset_float` was renamed to ``<axis>.encoder.config.phase_offset_float`
-* `<odrv>.config.brake_resistance == 0.0` is no longer a valid way to disable the brake resistor. Use `<odrv>.config.enable_brake_resistor` instead. A reboot is necessary for this to take effect.
-* `<odrv>.can.set_baud_rate()` was removed. The baudrate is now automatically updated when writing to `<odrv>.can.config.baud_rate`.
-
+# Releases
 ## [0.5.1] - 2020-09-27
 ### Added
 * Added motor `torque_constant`: units of torque are now [Nm] instead of just motor current.
-* Added `motor.config.torque_lim`: limit for motor torque in [Nm].
 * [Motor thermistors support](docs/thermistors.md)
 * Enable/disable of thermistor thermal limits according `setting axis.<thermistor>.enabled`.
 * Introduced `odrive-interface.yaml` as a root source for the ODrive's API. `odrivetool` connects much faster as a side effect.
@@ -178,13 +12,10 @@ Command ID | Rate Variable | Message Name
 
 ### Changed
 * **`input_pos`, `input_vel`, `pos_estimate_linear`, `pos_estimate_circular`, are now in units of [turns] or [turns/s] instead of [counts] or [counts/s]**
-* **`pos_gain`, `vel_gain`, `vel_integrator_gain`, are now in units of [(turns/s) / turns], [Nm/(turns/s)], [Nm/(turns/s * s)] instead of [(counts/s) / counts], [A/(counts/s)], [A/((counts/s) * s)].** `pos_gain` is not affected. Old values of `vel_gain` and `vel_integrator_gain` should be multiplied by `torque_constant * encoder cpr` to convert from the old units to the new units. `torque_constant` is approximately equal to 8.27 / (motor KV).
 * `axis.motor.thermal_current_lim` has been removed. Instead a new property is available `axis.motor.effective_current_lim` which contains the effective current limit including any thermal limits.
 * `axis.motor.get_inverter_temp()`, `axis.motor.inverter_temp_limit_lower` and `axis.motor.inverter_temp_limit_upper` have been moved to seperate fet thermistor object under `axis.fet_thermistor`. `get_inverter_temp()` function has been renamed to `temp` and is now a read-only property.
 * `axis.config.counts_per_step` is now `axis.config.turns_per_step`
 * Outputs of `axis.sensorless_estimator` are now in turns/s instead of electrical rad/s
-* Fixed bug of high current during lockin-ramp caused by `motor::update()` expecting a torque command instead of current
-* Fixed bug where commanded velocity was extremely high just after sensorless ramp when using `input_mode` INPUT_MODE_VEL_RAMP caused by `vel_setpoint` and `axis.config.sensorless_ramp.vel` being in different units
 
 ### Fixed
 * Fixed bug of high current during lockin-ramp caused by `motor::update()` expecting a torque command instead of current
@@ -244,6 +75,7 @@ Command ID | Rate Variable | Message Name
 ### Changed
 * Ascii command for reboot changed from `sb` to `sr`.
 
+# Releases
 ## [0.4.10] - 2019-04-24
 ### Fixed
 * Index search would trigger in the wrong place.

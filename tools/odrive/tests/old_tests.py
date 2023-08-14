@@ -225,7 +225,7 @@ class TestFlashAndErase(ODriveTest):
             # this is a firmware issue since it persists when unplugging/replugging
             # but goes away when power cycling the device
             odrv_ctx.handle.reboot()
-        except fibre.ObjectLostError:
+        except fibre.ChannelBrokenException:
             pass # this is expected
         time.sleep(0.5)
 

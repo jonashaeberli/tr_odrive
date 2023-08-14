@@ -1,10 +1,9 @@
 #ifndef __THERMISTOR_HPP
 #define __THERMISTOR_HPP
 
-class Motor; // declared in motor.hpp
-
-#include "current_limiter.hpp"
-#include <autogen/interfaces.hpp>
+#ifndef __ODRIVE_MAIN_H
+#error "This file should not be included directly. Include odrive_main.h instead."
+#endif
 
 class ThermistorCurrentLimiter : public CurrentLimiter, public ODriveIntf::ThermistorCurrentLimiterIntf {
 public:
@@ -24,12 +23,12 @@ public:
     uint16_t adc_channel_;
     const float* const coefficients_;
     const size_t num_coeffs_;
-    float temperature_ = NAN; // [°C] NaN while the ODrive is initializing.
+    float temperature_;
     const float& temp_limit_lower_;
     const float& temp_limit_upper_;
     const bool& enabled_;
-    Motor* motor_ = nullptr; // set by Motor::apply_config()
-    std::array<float, 2> lpf_vals_ = { 0.0f };
+    Error error_;
+    Axis* axis_ = nullptr; // set by Axis constructor
 };
 
 class OnboardThermistorCurrentLimiter : public ThermistorCurrentLimiter, public ODriveIntf::OnboardThermistorCurrentLimiterIntf {
@@ -41,9 +40,9 @@ public:
     };
 
     virtual ~OnboardThermistorCurrentLimiter() = default;
-    OnboardThermistorCurrentLimiter(uint16_t adc_channel, const float* const coefficients, size_t num_coeffs);
+    OnboardThermistorCurrentLimiter(const ThermistorHardwareConfig_t& hw_config, Config_t& config);
 
-    Config_t config_;
+    Config_t& config_;
 };
 
 class OffboardThermistorCurrentLimiter : public ThermistorCurrentLimiter, public ODriveIntf::OffboardThermistorCurrentLimiterIntf {
@@ -53,11 +52,7 @@ public:
     struct Config_t {
         float thermistor_poly_coeffs[num_coeffs_];
 
-#if HW_VERSION_MAJOR == 3
         uint16_t gpio_pin = 4;
-#elif HW_VERSION_MAJOR == 4
-        uint16_t gpio_pin = 2;
-#endif
         float temp_limit_lower = 100;
         float temp_limit_upper = 120;
         bool enabled = false;
@@ -68,11 +63,9 @@ public:
     };
 
     virtual ~OffboardThermistorCurrentLimiter() = default;
-    OffboardThermistorCurrentLimiter();
+    OffboardThermistorCurrentLimiter(Config_t& config);
 
-    Config_t config_;
-
-    bool apply_config();
+    Config_t& config_;
 
 private:
     void decode_pin();
