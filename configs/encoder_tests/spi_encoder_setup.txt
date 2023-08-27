@@ -1,5 +1,5 @@
 dev0.axis0.encoder.config.abs_spi_cs_gpio_pin = 6  # or which ever GPIO pin you choose
-dev0.axis0.encoder.config.mode = SPI_ABS_RLS   # or ENCODER_MODE_SPI_ABS_AMS
+dev0.axis0.encoder.config.mode = ENCODER_MODE_SPI_ABS_RLS   # or ENCODER_MODE_SPI_ABS_AMS
 dev0.axis0.encoder.config.cpr = 2**14              # or 2**12 for AMT232A and AMT233A
 dev0.save_configuration()
 dev0.reboot()
