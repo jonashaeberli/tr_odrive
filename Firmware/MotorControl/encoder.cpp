@@ -43,10 +43,10 @@ void Encoder::setup() {
         .Mode = SPI_MODE_MASTER,
         .Direction = SPI_DIRECTION_2LINES,
         .DataSize = SPI_DATASIZE_16BIT,
-        .CLKPolarity = (mode_ == MODE_SPI_ABS_AEAT || mode_ == MODE_SPI_ABS_MA732) ? SPI_POLARITY_HIGH : SPI_POLARITY_LOW,
+        .CLKPolarity = (mode_ == MODE_SPI_ABS_AEAT || mode_ == MODE_SPI_ABS_MA732 || MODE_SPI_ABS_RLS) ? SPI_POLARITY_HIGH : SPI_POLARITY_LOW,
         .CLKPhase = SPI_PHASE_2EDGE,
         .NSS = SPI_NSS_SOFT,
-        .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16,
+        .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32,
         .FirstBit = SPI_FIRSTBIT_MSB,
         .TIMode = SPI_TIMODE_DISABLE,
         .CRCCalculation = SPI_CRCCALCULATION_DISABLE,
@@ -55,6 +55,10 @@ void Encoder::setup() {
 
     if (mode_ == MODE_SPI_ABS_MA732) {
         abs_spi_dma_tx_[0] = 0x0000;
+    }
+
+    if (mode_ == MODE_SPI_ABS_RLS) {
+        abs_spi_dma_tx_[0] = 0xC03F;
     }
 
     if(mode_ & MODE_FLAG_ABS){
@@ -531,7 +535,7 @@ bool Encoder::abs_spi_start_transaction() {
             spi_task_.ncs_gpio = abs_spi_cs_gpio_;
             spi_task_.tx_buf = (uint8_t*)abs_spi_dma_tx_;
             spi_task_.rx_buf = (uint8_t*)abs_spi_dma_rx_;
-            spi_task_.length = 1;
+            spi_task_.length = 2;
             spi_task_.on_complete = [](void* ctx, bool success) { ((Encoder*)ctx)->abs_spi_cb(success); };
             spi_task_.on_complete_ctx = this;
             spi_task_.next = nullptr;
@@ -558,6 +562,8 @@ uint8_t cui_parity(uint16_t v) {
     v ^= v >> 2;
     return ~v & 3;
 }
+
+
 
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
@@ -587,7 +593,7 @@ void Encoder::abs_spi_cb(bool success) {
 
         case MODE_SPI_ABS_RLS: {
             uint16_t rawVal = abs_spi_dma_rx_[0];
-            pos = (rawVal >> 2) & 0x3fff;
+            pos = rawVal & 0x3fff;
         } break;
 
         case MODE_SPI_ABS_MA732: {
