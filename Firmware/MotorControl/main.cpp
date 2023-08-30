@@ -542,9 +542,11 @@ static void rtos_main(void*) {
     // Try to initialized gate drivers for fault-free startup.
     // If this does not succeed, a fault will be raised and the idle loop will
     // periodically attempt to reinit the gate driver.
-    for(auto& axis: axes){
-        axis.motor_.setup();
-    }
+    //for(auto& axis: axes){
+    //    axis.motor_.setup();
+    //}
+
+    axis[0].motor_.setup();    
 
     for(auto& axis: axes){
         axis.encoder_.setup();
