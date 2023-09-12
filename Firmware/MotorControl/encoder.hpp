@@ -142,7 +142,9 @@ public:
     uint32_t abs_spi_cr1;
     uint32_t abs_spi_cr2;
     uint16_t abs_spi_dma_tx_[1] = {0xFFFF};
+    uint8_t abs_spi_dma_tx_multiturn[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
     uint16_t abs_spi_dma_rx_[1];
+    uint8_t abs_spi_dma_rx_multiturn[5];
     Stm32SpiArbiter::SpiTask spi_task_;
 
     constexpr float getCoggingRatio(){
