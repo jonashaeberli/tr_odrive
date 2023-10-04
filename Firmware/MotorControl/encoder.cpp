@@ -57,11 +57,6 @@ void Encoder::setup() {
         abs_spi_dma_tx_[0] = 0x0000;
     }
 
-    if (mode_ == MODE_SPI_ABS_RLS) {
-        abs_spi_dma_tx_multiturn[0] = 0xC0;
-        abs_spi_dma_tx_multiturn[1] = 0x3F;
-    }
-
     if(mode_ & MODE_FLAG_ABS){
         abs_spi_cs_pin_init();
 
@@ -568,6 +563,7 @@ uint8_t cui_parity(uint16_t v) {
 
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
+    uint32_t pos_multiturn;
 
     if (!success) {
         goto done;
@@ -594,11 +590,13 @@ void Encoder::abs_spi_cb(bool success) {
 
         case MODE_SPI_ABS_RLS: {
             uint64_t rawVal = 0x0;
+            
             for (int i = 0; i < 5; i++) {
                 // Shift the existing result 8 bits to the left and add the new 8-bit value.
-                rawVal = (rawVal << 8) | abs_spi_dma_rx_[i];
+                rawVal = (rawVal << 8) | abs_spi_dma_rx_multiturn[i];
             }
-            pos = (rawVal >> 20) & 0x3ffff;
+            pos_multiturn = rawVal & 0xFFFF000000;
+            pos = rawVal & 0xFFFC00;
         } break;
 
         case MODE_SPI_ABS_MA732: {
@@ -612,7 +610,8 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
     }
 
-    pos_abs_ = pos;
+    pos_abs_encoder = pos_abs_encoder * config_.cpr;
+    pos_abs_ = pos + pos_abs_encoder;
     abs_spi_pos_updated_ = true;
     if (config_.pre_calibrated) {
         is_ready_ = true;
