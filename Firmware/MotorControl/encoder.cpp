@@ -610,7 +610,7 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
     }
 
-    pos_abs_encoder = pos_abs_encoder * config_.cpr;
+    pos_abs_turns = pos_multiturn * config_.cpr;
     pos_abs_ = pos + pos_abs_encoder;
     abs_spi_pos_updated_ = true;
     if (config_.pre_calibrated) {
