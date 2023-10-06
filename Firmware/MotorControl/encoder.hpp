@@ -112,6 +112,8 @@ public:
     int32_t pos_abs_encoder = 0;
     float spi_error_rate_ = 0.0f;
 
+    bool multiturn_not_set = true;
+
     OutputPort<float> pos_estimate_ = 0.0f; // [turn]
     OutputPort<float> vel_estimate_ = 0.0f; // [turn/s]
     OutputPort<float> pos_circular_ = 0.0f; // [turn]
