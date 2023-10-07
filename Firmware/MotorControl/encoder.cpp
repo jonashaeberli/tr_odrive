@@ -610,7 +610,7 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
     }
 
-    pos_abs_turns = pos_multiturn;
+    pos_abs_turns = pos_multiturn - 32768;
     pos_abs_ = pos;   
 
     abs_spi_pos_updated_ = true;
