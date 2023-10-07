@@ -595,8 +595,8 @@ void Encoder::abs_spi_cb(bool success) {
                 // Shift the existing result 8 bits to the left and add the new 8-bit value.
                 rawVal = (rawVal << 8) | abs_spi_dma_rx_multiturn[i];
             }
-            pos_multiturn = rawVal & 0xFFFF000000;
-            pos = rawVal & 0xFFFC00;
+            pos_multiturn = rawVal >> 24;
+            pos = (rawVal & 0xFFFC00) >> 10;
         } break;
 
         case MODE_SPI_ABS_MA732: {
