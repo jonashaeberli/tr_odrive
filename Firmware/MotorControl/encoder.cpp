@@ -563,7 +563,7 @@ uint8_t cui_parity(uint16_t v) {
 
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
-    uint16_t pos_multiturn;
+    uint16_t pos_multiturn = 0;
 
     if (!success) {
         goto done;
