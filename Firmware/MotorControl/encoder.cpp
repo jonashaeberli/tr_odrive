@@ -563,7 +563,7 @@ uint8_t cui_parity(uint16_t v) {
 
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
-    uint32_t pos_multiturn;
+    uint16_t pos_multiturn;
 
     if (!success) {
         goto done;
@@ -610,15 +610,8 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
     }
 
-    pos_abs_turns = pos_multiturn * config_.cpr;
-    pos_abs_ = pos;
-
-    //Check if we already set the multiturn count
-    if (multiturn_not_set) {
-      pos_estimate_counts_ += pos_abs_turns;
-      pos_cpr_counts_ += pos_abs_turns;
-      multiturn_not_set = false;
-    }
+    pos_abs_turns = pos_multiturn;
+    pos_abs_ = pos;   
 
     abs_spi_pos_updated_ = true;
     if (config_.pre_calibrated) {
@@ -670,6 +663,7 @@ bool Encoder::update() {
     // update internal encoder state.
     int32_t delta_enc = 0;
     int32_t pos_abs_latched = pos_abs_; //LATCH
+    int32_t pos_abs_turns_latched = pos_abs_turns;
 
     switch (mode_) {
         case MODE_INCREMENTAL: {
@@ -815,7 +809,7 @@ bool Encoder::update() {
     }
 
     // Outputs from Encoder for Controller
-    pos_estimate_ = pos_estimate_counts_ / (float)config_.cpr;
+    pos_estimate_ = (pos_abs_latched / (float)config_.cpr) + pos_abs_turns_latched;
     vel_estimate_ = vel_estimate_counts_ / (float)config_.cpr;
     
     // TODO: we should strictly require that this value is from the previous iteration
