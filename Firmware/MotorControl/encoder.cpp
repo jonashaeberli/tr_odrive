@@ -663,7 +663,7 @@ bool Encoder::update() {
     // update internal encoder state.
     int32_t delta_enc = 0;
     int32_t pos_abs_latched = pos_abs_; //LATCH
-    int32_t pos_abs_turns_latched = pos_abs_turns;
+    int32_t pos_abs_turns_latched = pos_abs_turns; //LATCH
 
     switch (mode_) {
         case MODE_INCREMENTAL: {
@@ -771,8 +771,8 @@ bool Encoder::update() {
         } break;
     }
 
-    shadow_count_ += delta_enc;
-    count_in_cpr_ += delta_enc;
+    shadow_count_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched;
+    count_in_cpr_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched;
     count_in_cpr_ = mod(count_in_cpr_, config_.cpr);
 
     if(mode_ & MODE_FLAG_ABS)
@@ -809,7 +809,7 @@ bool Encoder::update() {
     }
 
     // Outputs from Encoder for Controller
-    pos_estimate_ = (pos_abs_latched / (float)config_.cpr) + pos_abs_turns_latched;
+    pos_estimate_ = pos_estimate_counts_ / (float)config_.cpr;
     vel_estimate_ = vel_estimate_counts_ / (float)config_.cpr;
     
     // TODO: we should strictly require that this value is from the previous iteration
