@@ -1,0 +1,34 @@
+dev0.erase_configuration()
+
+dev0.axis0.config.enable_brake_resistor = True
+dev0.axis0.config.brake_resistance = 2.0
+dev0.axis0.config.dc_bus_undervoltage_trip_level = 8.0
+dev0.axis0.config.dc_bus_overvoltage_trip_level = 56.0
+dev0.axis0.config.dc_max_positive_current = 6
+dev0.axis0.config.dc_max_negative_current = 0.0
+dev0.axis0.config.max_regen_current = 4.0
+dev0.axis0.config.can.node_id = 4
+dev0.axis0.motor.config.pole_pairs = 7
+dev0.axis0.motor.config.calibration_current = 3
+dev0.axis0.motor.config.motor_type = MOTOR_TYPE_HIGH_CURRENT
+dev0.axis0.motor.config.torque_constant = 0.08614583333333332
+dev0.axis0.motor.config.resistance_calib_max_voltage = 2
+dev0.axis0.motor.config.current_lim = 2
+dev0.axis0.motor.config.current_lim_margin = 0.6666666666666666
+dev0.axis0.motor.config.torque_lim = 1
+dev0.axis0.motor.config.requested_current_range = 3.6666666666666665
+dev0.axis0.motor.config.I_bus_hard_max = 6
+dev0.axis0.controller.config.control_mode = CONTROL_MODE_POSITION_CONTROL
+dev0.axis0.controller.config.vel_limit = 25
+dev0.axis0.controller.config.input_mode = INPUT_MODE_POS_FILTER
+dev0.axis0.controller.config.input_filter_bandwidth = 2.0
+dev0.axis0.trap_traj.config.vel_limit = 25
+dev0.axis0.trap_traj.config.accel_limit = 20
+dev0.axis0.trap_traj.config.decel_limit = 20
+dev0.axis0.encoder.config.abs_spi_cs_gpio_pin = 6
+dev0.axis0.encoder.config.mode = ENCODER_MODE_SPI_ABS_RLS
+dev0.axis0.encoder.config.cpr = 16384
+dev0.can.config.baud_rate = 1000000
+
+dev0.save_configuration()
+dev0.reboot()

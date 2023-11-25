@@ -1,30 +1,56 @@
-# config_generator.py
+# Description: Generates configuration files for ODrive motorcontrollers
 import json
 
-def generate_config(motor_type, pole_pairs, vel_limit, accel_limit, decel_limit):
+
+# Generate configurations for different motors / Adjust Values for all Motors in generate_config function
+def main():
+    generate_config("RI100_1", 14, 3, 101, 5, 1, 1)
+    generate_config("RI80_2", 8, 3, 75, 5, 1, 2)
+    generate_config("RI70_3", 14, 3, 94, 3, 0.5, 3)
+    generate_config("RI50_4", 7, 3, 96, 2, 0.2, 4)
+    generate_config("RI50_5", 7, 3, 96, 2, 0.2, 5)
+    generate_config("RI50_6", 7, 3, 96, 2, 0.2, 6)
+
+
+def generate_config(motor_type,
+                    pole_pairs, 
+                    calib_current, 
+                    motor_kv, 
+                    current_lim, 
+                    torque_lim,
+                    node_id,):
     
+    brake_resistance = 2.0
+    current_safty_margin = 1
+
+    vel_limit = 25
+    accel_limit = 20
+    decel_limit = 20
+
+    input_filter_bandwidth = 2.0
+
     config = {
         "enable_brake_resistor": True,
-        "brake_resistance": 2.0,
+        "brake_resistance": brake_resistance,
         "dc_bus_undervoltage_trip_level": 8.0,
         "dc_bus_overvoltage_trip_level": 56.0,
-        "dc_max_positive_current": 20.0,
-        "dc_max_negative_current": -3.0,
-        "max_regen_current": 0,
-        "can.node_id": 1,
+        "dc_max_positive_current": current_lim*3,
+        "dc_max_negative_current": 0.0,
+        "max_regen_current": 4.0,
+        "can.node_id": node_id,
     }
     
     motor = {
         "pole_pairs": pole_pairs,
-        "calibration_current": 6,
+        "calibration_current": calib_current,
         "motor_type": "MOTOR_TYPE_HIGH_CURRENT",
-        "torque_constant": 8.27/101,
+        "torque_constant": 8.27/motor_kv,
         "resistance_calib_max_voltage": 2,
-        "current_lim": 10,
-        "current_lim_margin": 5,
+        "current_lim": current_lim,
+        "current_lim_margin": current_lim/3,
         "torque_lim": 1,
-        "requested_current_range": 16,
-        "I_bus_hard_max": 25,
+        "requested_current_range": current_lim + current_lim/3 + current_safty_margin,
+        "I_bus_hard_max": current_lim*3,
     }
 
     controller = {
@@ -32,7 +58,7 @@ def generate_config(motor_type, pole_pairs, vel_limit, accel_limit, decel_limit)
         "vel_limit": vel_limit,
         "input_mode": "INPUT_MODE_TRAP_TRAJ",
         "input_mode": "INPUT_MODE_POS_FILTER",
-        "input_filter_bandwidth": "2.0",
+        "input_filter_bandwidth": input_filter_bandwidth,
     }
 
     trap_traj = {
@@ -48,7 +74,7 @@ def generate_config(motor_type, pole_pairs, vel_limit, accel_limit, decel_limit)
     }
 
     can = {
-        "baud_rate": 500000,
+        "baud_rate": 1000000,
     }
 
 
@@ -72,13 +98,12 @@ def generate_config(motor_type, pole_pairs, vel_limit, accel_limit, decel_limit)
 
         for key, value in can.items():
             f.write(f"dev0.can.config.{key} = {value}\n")
-            
+
         f.write("\n")
         f.write("dev0.save_configuration()\n")
         f.write("dev0.reboot()\n")
 
-# Generate configurations for different motors
-generate_config("RI100", 14, 50, 5, 5)
-generate_config("RI80", 10, 40, 4, 4)
-generate_config("RI70", 8, 30, 3, 3)
-generate_config("RI50", 6, 20, 2, 2)
+
+# Call the main function
+if __name__ == "__main__":
+    main()
