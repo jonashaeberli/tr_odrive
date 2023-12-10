@@ -1,12 +1,12 @@
 dev0.erase_configuration()
 
-dev0.axis0.config.enable_brake_resistor = True
-dev0.axis0.config.brake_resistance = 2.0
-dev0.axis0.config.dc_bus_undervoltage_trip_level = 8.0
-dev0.axis0.config.dc_bus_overvoltage_trip_level = 56.0
-dev0.axis0.config.dc_max_positive_current = 15
-dev0.axis0.config.dc_max_negative_current = 0.0
-dev0.axis0.config.max_regen_current = 4.0
+dev0.config.enable_brake_resistor = True
+dev0.config.brake_resistance = 2.0
+dev0.config.dc_bus_undervoltage_trip_level = 8.0
+dev0.config.dc_bus_overvoltage_trip_level = 56.0
+dev0.config.dc_max_positive_current = 15
+dev0.config.dc_max_negative_current = -0.001
+dev0.config.max_regen_current = 0.0
 dev0.axis0.config.can.node_id = 2
 dev0.axis0.motor.config.pole_pairs = 8
 dev0.axis0.motor.config.calibration_current = 3

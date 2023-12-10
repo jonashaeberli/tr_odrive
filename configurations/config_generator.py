@@ -20,7 +20,6 @@ def generate_config(motor_type,
                     torque_lim,
                     node_id,):
     
-    brake_resistance = 2.0
     current_safty_margin = 1
 
     vel_limit = 25
@@ -31,12 +30,15 @@ def generate_config(motor_type,
 
     config = {
         "enable_brake_resistor": True,
-        "brake_resistance": brake_resistance,
+        "brake_resistance": 2.0,
         "dc_bus_undervoltage_trip_level": 8.0,
         "dc_bus_overvoltage_trip_level": 56.0,
         "dc_max_positive_current": current_lim*3,
-        "dc_max_negative_current": 0.0,
-        "max_regen_current": 4.0,
+        "dc_max_negative_current": -0.001,
+        "max_regen_current": 0.0,
+    }
+
+    axis_config = {
         "can.node_id": node_id,
     }
     
@@ -82,6 +84,9 @@ def generate_config(motor_type,
         f.write("dev0.erase_configuration()\n\n")
 
         for key, value in config.items():
+            f.write(f"dev0.config.{key} = {value}\n")
+
+        for key, value in axis_config.items():
             f.write(f"dev0.axis0.config.{key} = {value}\n")
 
         for key, value in motor.items():
