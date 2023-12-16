@@ -559,7 +559,29 @@ uint8_t cui_parity(uint16_t v) {
     return ~v & 3;
 }
 
-
+uint8_t CRC_SPI_97_64bit(uint64_t dw_InputData)
+{
+ uint8_t b_Index = 0;
+ uint8_t b_CRC = 0;
+ b_Index = (uint8_t)((dw_InputData >> 56u) & (uint64_t)0x000000FFu);
+ b_CRC = (uint8_t)((dw_InputData >> 48u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 40u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 32u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 24u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 16u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 8u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)(dw_InputData & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_CRC = ab_CRC8_LUT[b_Index];
+ 
+ return b_CRC; 
+}
 
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
@@ -591,9 +613,14 @@ void Encoder::abs_spi_cb(bool success) {
         case MODE_SPI_ABS_RLS: {
             uint64_t rawVal = 0x0;
             
-            for (int i = 0; i < 5; i++) {
-                // Shift the existing result 8 bits to the left and add the new 8-bit value.
-                rawVal = (rawVal << 8) | abs_spi_dma_rx_multiturn[i];
+            rawVal =  ((uint64_t)abs_spi_dma_rx_multiturn[0] << 32) + ((uint64_t)abs_spi_dma_rx_multiturn[1] << 24) +
+            ((uint64_t)abs_spi_dma_rx_multiturn[2] << 16) + ((uint64_t)abs_spi_dma_rx_multiturn[3] << 8) +
+            ((uint64_t)abs_spi_dma_rx_multiturn[4] << 0);
+            //Calculate crc with given input data
+            uint8_t calculated_crc = ~(CRC_SPI_97_64bit(rawVal))& 0xFF; //inverted CRC
+            //Check if crc is correct
+            if(calculated_crc != abs_spi_dma_rx_multiturn[4]){
+                goto done;
             }
             pos_multiturn = rawVal >> 24;
             pos = (rawVal & 0xFFFC00) >> 10;
