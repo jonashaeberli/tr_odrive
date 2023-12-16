@@ -1,16 +1,6 @@
 # Description: Generates configuration files for ODrive motorcontrollers
 import json
-
-
-# Generate configurations for different motors / Adjust Values for all Motors in generate_config function
-def main():
-    generate_config("RI100_1", 14, 3, 101, 5, 1, 1)
-    generate_config("RI80_2", 8, 3, 75, 5, 1, 2)
-    generate_config("RI70_3", 14, 3, 94, 3, 0.5, 3)
-    generate_config("RI50_4", 7, 3, 96, 2, 0.2, 4)
-    generate_config("RI50_5", 7, 3, 96, 2, 0.2, 5)
-    generate_config("RI50_6", 7, 3, 96, 2, 0.2, 6)
-
+import math as m
 
 def generate_config(motor_type,
                     pole_pairs, 
@@ -22,9 +12,9 @@ def generate_config(motor_type,
     
     current_safty_margin = 1
 
-    vel_limit = 25
-    accel_limit = 20
-    decel_limit = 20
+    vel_limit = 10
+    accel_limit = 40
+    decel_limit = 40
 
     input_filter_bandwidth = 2.0
 
@@ -33,7 +23,7 @@ def generate_config(motor_type,
         "brake_resistance": 2.0,
         "dc_bus_undervoltage_trip_level": 8.0,
         "dc_bus_overvoltage_trip_level": 56.0,
-        "dc_max_positive_current": current_lim*3,
+        "dc_max_positive_current": current_lim + m.ceil(current_lim*2)/8 + 1.5*current_safty_margin,
         "dc_max_negative_current": -0.001,
         "max_regen_current": 0.0,
     }
@@ -49,10 +39,10 @@ def generate_config(motor_type,
         "torque_constant": 8.27/motor_kv,
         "resistance_calib_max_voltage": 2,
         "current_lim": current_lim,
-        "current_lim_margin": current_lim/3,
+        "current_lim_margin": m.ceil(current_lim*2)/8,
         "torque_lim": 1,
-        "requested_current_range": current_lim + current_lim/3 + current_safty_margin,
-        "I_bus_hard_max": current_lim*3,
+        "requested_current_range": current_lim + m.ceil(current_lim*2)/8 + current_safty_margin,
+        "I_bus_hard_max": current_lim + m.ceil(current_lim*2)/8 + 1.5*current_safty_margin,
     }
 
     controller = {
@@ -79,6 +69,7 @@ def generate_config(motor_type,
         "baud_rate": 1000000,
     }
 
+    print(f"{motor_type} max current: {config['dc_max_positive_current']}")
 
     with open(f"{motor_type}_configuration.txt", "w") as f:
         f.write("dev0.erase_configuration()\n\n")
@@ -108,7 +99,18 @@ def generate_config(motor_type,
         f.write("dev0.save_configuration()\n")
         f.write("dev0.reboot()\n")
 
+        return config["dc_max_positive_current"]
 
-# Call the main function
-if __name__ == "__main__":
-    main()
+
+# Generate configurations for different motors / Adjust Values for all Motors in generate_config function
+max_current_all = 0
+
+max_current_all += generate_config("RI100_1", 14, 3, 101, 5, 1, 1)
+max_current_all += generate_config("RI80_2", 8, 3, 75, 7, 1.2, 2)
+max_current_all += generate_config("RI70_3", 14, 2, 94, 4, 0.5, 3)
+max_current_all += generate_config("RI50_4", 7, 1.5, 96, 1.5, 0.2, 4)
+max_current_all += generate_config("RI50_5", 7, 1.5, 96, 2, 0.2, 5)
+max_current_all += generate_config("RI50_6", 7, 1.5, 96, 1.5, 0.2, 6)
+
+print(f"The max current lim of all axes is {max_current_all}!")
+print(f"The max current of all axes is {5+7+4+1.5+2+1.5}!")
