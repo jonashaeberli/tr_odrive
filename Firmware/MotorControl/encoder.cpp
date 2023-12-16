@@ -612,12 +612,13 @@ void Encoder::abs_spi_cb(bool success) {
 
         case MODE_SPI_ABS_RLS: {
             uint64_t rawVal = 0x0;
+            uint8_t calculated_crc = 0x0;
             
             rawVal =  ((uint64_t)abs_spi_dma_rx_multiturn[0] << 32) + ((uint64_t)abs_spi_dma_rx_multiturn[1] << 24) +
             ((uint64_t)abs_spi_dma_rx_multiturn[2] << 16) + ((uint64_t)abs_spi_dma_rx_multiturn[3] << 8) +
             ((uint64_t)abs_spi_dma_rx_multiturn[4] << 0);
             //Calculate crc with given input data
-            uint8_t calculated_crc = ~(CRC_SPI_97_64bit(rawVal))& 0xFF; //inverted CRC
+            calculated_crc = ~(CRC_SPI_97_64bit(rawVal))& 0xFF; //inverted CRC
             //Check if crc is correct
             if(calculated_crc != abs_spi_dma_rx_multiturn[4]){
                 goto done;
