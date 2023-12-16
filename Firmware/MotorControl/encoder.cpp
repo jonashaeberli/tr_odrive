@@ -565,20 +565,20 @@ uint8_t CRC_SPI_97_64bit(uint64_t dw_InputData)
  uint8_t b_CRC = 0;
  b_Index = (uint8_t)((dw_InputData >> 56u) & (uint64_t)0x000000FFu);
  b_CRC = (uint8_t)((dw_InputData >> 48u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)((dw_InputData >> 40u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)((dw_InputData >> 32u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)((dw_InputData >> 24u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)((dw_InputData >> 16u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)((dw_InputData >> 8u) & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
  b_CRC = (uint8_t)(dw_InputData & (uint64_t)0x000000FFu);
- b_Index = b_CRC ^ ab_CRC8_LUT[b_Index];
- b_CRC = ab_CRC8_LUT[b_Index];
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = Encoder::ab_CRC8_LUT[b_Index];
  
  return b_CRC; 
 }
@@ -618,7 +618,7 @@ void Encoder::abs_spi_cb(bool success) {
             ((uint64_t)abs_spi_dma_rx_multiturn[2] << 16) + ((uint64_t)abs_spi_dma_rx_multiturn[3] << 8) +
             ((uint64_t)abs_spi_dma_rx_multiturn[4] << 0);
             //Calculate crc with given input data
-            calculated_crc = ~(CRC_SPI_97_64bit(rawVal))& 0xFF; //inverted CRC
+            calculated_crc = ~(CRC_SPI_97_64bit(rawVal >> 8))& 0xFF; //inverted CRC
             //Check if crc is correct
             if(calculated_crc != abs_spi_dma_rx_multiturn[4]){
                 goto done;
