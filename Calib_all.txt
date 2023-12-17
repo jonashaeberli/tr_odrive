@@ -3,5 +3,7 @@ dev0.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
 dev0.axis0.encoder.config.pre_calibrated = True
 dev0.axis0.motor.config.pre_calibrated  = True
 
+dev0.axis0.config.startup_closed_loop_control = True
+
 dev0.save_configuration()
 dev0.reboot()

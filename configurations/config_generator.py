@@ -12,7 +12,7 @@ def generate_config(motor_type,
     
     current_safty_margin = 1
 
-    vel_limit = 10
+    vel_limit = 6
     accel_limit = 40
     decel_limit = 40
 
@@ -47,7 +47,7 @@ def generate_config(motor_type,
 
     controller = {
         "control_mode": "CONTROL_MODE_POSITION_CONTROL",
-        "vel_limit": vel_limit,
+        "vel_limit": vel_limit + 4,
         "input_mode": "INPUT_MODE_TRAP_TRAJ",
         "input_mode": "INPUT_MODE_POS_FILTER",
         "input_filter_bandwidth": input_filter_bandwidth,
