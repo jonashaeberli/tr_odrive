@@ -108,9 +108,9 @@ max_current_all = 0
 max_current_all += generate_config("RI100_1", 14, 3, 101, 5, 1, 1)
 max_current_all += generate_config("RI80_2", 8, 3, 75, 7, 1.2, 2)
 max_current_all += generate_config("RI70_3", 14, 2, 94, 4, 0.5, 3)
-max_current_all += generate_config("RI50_4", 7, 1.5, 96, 1.5, 0.2, 4)
-max_current_all += generate_config("RI50_5", 7, 1.5, 96, 2, 0.2, 5)
-max_current_all += generate_config("RI50_6", 7, 1.5, 96, 1.5, 0.2, 6)
+max_current_all += generate_config("RI50_4", 7, 1, 96, 2.5, 0.2, 4)
+max_current_all += generate_config("RI50_5", 7, 1, 96, 2.5, 0.2, 5)
+max_current_all += generate_config("RI50_6", 7, 1, 96, 2.5, 0.2, 6)
 
 print(f"The max current lim of all axes is {max_current_all}!")
 print(f"The max current of all axes is {5+7+4+1.5+2+1.5}!")
