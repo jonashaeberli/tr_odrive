@@ -1365,6 +1365,12 @@ interfaces:
             unit: counts
         doc: Set the current linear position of the axis, in counts
 
+      set_hw_zero_pos:
+        in:
+          count: 
+            type: bool
+        doc: Set a new zero position on the encoder
+
 
   ODrive.SensorlessEstimator:
     c_is_class: True

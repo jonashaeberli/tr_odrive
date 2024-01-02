@@ -72,6 +72,8 @@ public:
     void set_circular_count(int32_t count, bool update_offset);
     bool calib_enc_offset(float voltage_magnitude);
 
+    void set_hw_zero_pos(bool set_new_hw_zero); // sets a new zero position on the encoder
+
     bool run_index_search();
     bool run_direction_find();
     bool run_hall_polarity_calibration();

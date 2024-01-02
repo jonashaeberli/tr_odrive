@@ -171,6 +171,23 @@ void Encoder::set_circular_count(int32_t count, bool update_offset) {
     cpu_exit_critical(prim);
 }
 
+void Encoder::set_hw_zero_pos(bool set_new_hw_zero) {
+    if (set_new_hw_zero) {
+        uint8_t zero_offset_programming_sequence[9] = {0xCD, 0xEF, 0x89, 0xAB, 0x5A, 0x00, 0x00, pos_abs_ & 0xFF00, pos_abs_ & 0xFF}; //The last two bytes set the zero offset
+        uint8_t set_multiturn_programming_sequence[9] = {0xCD, 0xEF, 0x89, 0xAB, 0x5A, 0x00, 0x00, 0x80, 0x00}; //The last two bytes set the multiturn value, we define 32768 as the zero turn position
+        
+        //Send each byte as a seperate SPI transaction
+        for (int i = 0; i < 9; i++) {
+            abs_spi_dma_tx_multiturn[0] = zero_offset_programming_sequence[i];
+            abs_spi_start_transaction();
+        }
+        for (int i = 0; i < 9; i++) {
+            abs_spi_dma_tx_multiturn[0] = set_multiturn_programming_sequence[i];
+            abs_spi_start_transaction();
+        }
+    }
+}
+
 bool Encoder::run_index_search() {
     config_.use_index = true;
     index_found_ = false;
