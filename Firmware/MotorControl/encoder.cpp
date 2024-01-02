@@ -64,8 +64,6 @@ void Encoder::setup() {
             axis_->controller_.anticogging_valid_ = true;
         }
     }
-
-    if (config_.)
 }
 
 void Encoder::set_error(Error error) {
