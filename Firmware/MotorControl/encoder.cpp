@@ -64,6 +64,8 @@ void Encoder::setup() {
             axis_->controller_.anticogging_valid_ = true;
         }
     }
+
+    if (config_.)
 }
 
 void Encoder::set_error(Error error) {
@@ -181,12 +183,12 @@ void Encoder::set_hw_zero_pos() {
     //Send each byte as a seperate SPI transaction
     for (int i = 0; i < 9; i++) {
         abs_spi_dma_tx_multiturn[0] = zero_offset_programming_sequence[i];
-        abs_spi_start_transaction(1);
+        abs_spi_start_transaction();
         delay_us(1000);
     }
     for (int i = 0; i < 9; i++) {
         abs_spi_dma_tx_multiturn[0] = set_multiturn_programming_sequence[i];
-        abs_spi_start_transaction(1);
+        abs_spi_start_transaction();
         delay_us(1000);
     }
     abs_spi_dma_tx_multiturn[0] = 0x00;
@@ -547,13 +549,13 @@ void Encoder::decode_hall_samples() {
                 | (read_sampled_gpio(hallC_gpio_) ? 4 : 0);
 }
 
-bool Encoder::abs_spi_start_transaction(uint8_t length = 5) {
+bool Encoder::abs_spi_start_transaction() {
     if (mode_ & MODE_FLAG_ABS){
         if (Stm32SpiArbiter::acquire_task(&spi_task_)) {
             spi_task_.ncs_gpio = abs_spi_cs_gpio_;
             spi_task_.tx_buf = (uint8_t*)abs_spi_dma_tx_multiturn;
             spi_task_.rx_buf = (uint8_t*)abs_spi_dma_rx_multiturn;
-            spi_task_.length = length;
+            spi_task_.length = 5;
             spi_task_.on_complete = [](void* ctx, bool success) { ((Encoder*)ctx)->abs_spi_cb(success); };
             spi_task_.on_complete_ctx = this;
             spi_task_.next = nullptr;
@@ -666,6 +668,10 @@ void Encoder::abs_spi_cb(bool success) {
     abs_spi_pos_updated_ = true;
     if (config_.pre_calibrated) {
         is_ready_ = true;
+    }
+    if (config_.set_hw_zero_pos){
+        set_hw_zero_pos();
+        config_.set_hw_zero_pos = false;
     }
 
 done:

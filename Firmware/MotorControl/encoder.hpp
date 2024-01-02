@@ -32,6 +32,7 @@ public:
                                     // be determined by run_offset_calibration.
                                     // In this case the encoder will enter ready
                                     // state as soon as the index is found.
+        bool set_hw_zero_pos = false; //Set zero on encoder while true
         int32_t direction = 0; // direction with respect to motor
         bool use_index_offset = true;
         bool enable_phase_interpolation = true; // Use velocity to interpolate inside the count state

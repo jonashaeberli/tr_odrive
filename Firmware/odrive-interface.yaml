@@ -1323,6 +1323,7 @@ interfaces:
           phase_offset_float: float32
           direction: int32
           pre_calibrated: {type: bool, c_setter: set_pre_calibrated}
+          set_hw_zero_pos: {type: bool, c_setter: set_hw_zero_pos}
           enable_phase_interpolation: bool
           bandwidth: 
             type: float32
@@ -1364,9 +1365,6 @@ interfaces:
             type: int32
             unit: counts
         doc: Set the current linear position of the axis, in counts
-
-      set_hw_zero_pos:
-        doc: Set a new zero position on the encoder
 
 
   ODrive.SensorlessEstimator:
