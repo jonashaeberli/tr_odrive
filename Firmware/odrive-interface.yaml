@@ -1366,9 +1366,6 @@ interfaces:
         doc: Set the current linear position of the axis, in counts
 
       set_hw_zero_pos:
-        in:
-          count: 
-            type: bool
         doc: Set a new zero position on the encoder
 
 
