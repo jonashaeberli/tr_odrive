@@ -171,7 +171,6 @@ void Encoder::set_circular_count(int32_t count, bool update_offset) {
     cpu_exit_critical(prim);
 }
 
-<<<<<<< HEAD
 void Encoder::set_hw_zero_pos() {
     // Disable interrupts to make a critical section to avoid race condition
     uint32_t prim = cpu_enter_critical();
@@ -184,24 +183,6 @@ void Encoder::set_hw_zero_pos() {
         abs_spi_dma_tx_multiturn[0] = zero_offset_programming_sequence[i];
         abs_spi_start_transaction(1);
         delay_us(1000);
-=======
-void Encoder::set_hw_zero_pos(bool set_new_hw_zero) {
-    if (set_new_hw_zero) {
-        uint8_t zero_offset_programming_sequence[9] = {0xCD, 0xEF, 0x89, 0xAB, 0x5A, 0x00, 0x00, pos_abs_ >> 8, pos_abs_ & 0xFF}; //The last two bytes set the zero offset
-        uint8_t set_multiturn_programming_sequence[9] = {0xCD, 0xEF, 0x89, 0xAB, 0x5A, 0x00, 0x00, 0x80, 0x00}; //The last two bytes set the multiturn value, we define 32768 as the zero turn position
-        
-        //Send each byte as a seperate SPI transaction
-        for (int i = 0; i < 9; i++) {
-            abs_spi_dma_tx_multiturn[0] = zero_offset_programming_sequence[i];
-            abs_spi_start_transaction();
-        }
-        for (int i = 0; i < 9; i++) {
-            abs_spi_dma_tx_multiturn[0] = set_multiturn_programming_sequence[i];
-            abs_spi_start_transaction();
-        }
-        
-        abs_spi_dma_tx_multiturn[0] = 0x00;
->>>>>>> d8e5d95500c303697bf880df3d7a70462193faa9
     }
     for (int i = 0; i < 9; i++) {
         abs_spi_dma_tx_multiturn[0] = set_multiturn_programming_sequence[i];
