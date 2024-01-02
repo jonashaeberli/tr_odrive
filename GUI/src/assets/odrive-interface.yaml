@@ -578,7 +578,7 @@ interfaces:
           sincos_gpio_pin_cos: uint16
     functions:
       set_linear_count: {in: {count: int32}}
-      set_hw_zero_pos: {in: {count: bool}}
+      set_hw_zero_pos: {in: {set_new_hw_pos: bool}}
 
 
   ODrive.SensorlessEstimator:

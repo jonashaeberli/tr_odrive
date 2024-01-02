@@ -185,6 +185,8 @@ void Encoder::set_hw_zero_pos(bool set_new_hw_zero) {
             abs_spi_dma_tx_multiturn[0] = set_multiturn_programming_sequence[i];
             abs_spi_start_transaction();
         }
+        
+        abs_spi_dma_tx_multiturn[0] = 0x00;
     }
 }
 
