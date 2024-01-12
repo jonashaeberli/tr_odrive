@@ -163,7 +163,8 @@ void Encoder::set_hw_zero_pos_offset(int32_t offset) {
     shadow_count_ = (pos_abs_turns * config_.cpr) + pos_abs_ - hw_zero_pos_offset_;
     count_in_cpr_ = (pos_abs_turns * config_.cpr) + pos_abs_ - hw_zero_pos_offset_;
 
-    timer_->Instance->CNT = offset;
+    // Ensure updates to shadow_count_ and count_in_cpr_ are seen by other threads
+    __DSB();
 
     cpu_exit_critical(prim);
 }
