@@ -153,7 +153,7 @@ void Encoder::set_linear_count(int32_t count) {
     cpu_exit_critical(prim);
 }
 
-void set_hw_zero_pos_offset(int32_t offset) {
+void Encoder::set_hw_zero_pos_offset(int32_t offset) {
     // Disable interrupts to make a critical section to avoid race condition
     uint32_t prim = cpu_enter_critical();
 
