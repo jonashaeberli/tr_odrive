@@ -1319,9 +1319,6 @@ interfaces:
           cpr: 
             type: int32
             doc: Counts per Revolution of the encoder.  This is 4x the Pulses per Revolution.
-          hw_zero_pos_offset: 
-            type: int32
-            doc: Offset from Encoder Zero to the actual zero Position of the system.
           phase_offset: int32
           phase_offset_float: float32
           direction: int32
@@ -1367,6 +1364,12 @@ interfaces:
             type: int32
             unit: counts
         doc: Set the current linear position of the axis, in counts
+      set_hw_zero_pos_offset:
+        in:
+          count: 
+            type: int32
+            unit: counts
+        doc: Set the current position of the axis relative to the actual encoder zero.
 
 
   ODrive.SensorlessEstimator:
