@@ -44,7 +44,7 @@ public:
         uint16_t sincos_gpio_pin_sin = 3;
         uint16_t sincos_gpio_pin_cos = 4;
 
-        uint64_t hw_zero_pos_offset = 0;
+        int32_t hw_zero_pos_offset = 0;
 
 
         // custom setters

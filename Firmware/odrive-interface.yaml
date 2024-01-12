@@ -1320,7 +1320,7 @@ interfaces:
             type: int32
             doc: Counts per Revolution of the encoder.  This is 4x the Pulses per Revolution.
           hw_zero_pos_offset: 
-            type: uint64_t
+            type: int32
             doc: Offset from Encoder Zero to the actual zero Position of the system.
           phase_offset: int32
           phase_offset_float: float32

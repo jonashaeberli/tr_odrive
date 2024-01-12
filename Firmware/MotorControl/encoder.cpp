@@ -645,10 +645,6 @@ void Encoder::abs_spi_cb(bool success) {
     if (config_.pre_calibrated) {
         is_ready_ = true;
     }
-    if (config_.set_hw_zero_pos){
-        set_hw_zero_pos();
-        config_.set_hw_zero_pos = false;
-    }
 
 done:
     Stm32SpiArbiter::release_task(&spi_task_);
