@@ -154,8 +154,18 @@ void Encoder::set_linear_count(int32_t count) {
 }
 
 void Encoder::set_hw_zero_pos_offset(int32_t offset) {
-    // Update states
+    // Disable interrupts to make a critical section to avoid race condition
+    uint32_t prim = cpu_enter_critical();
+
     hw_zero_pos_offset_ = offset;
+    
+    // Update states
+    shadow_count_ = (pos_abs_turns * config_.cpr) + pos_abs_ - hw_zero_pos_offset_;
+    count_in_cpr_ = (pos_abs_turns * config_.cpr) + pos_abs_ - hw_zero_pos_offset_;
+
+    timer_->Instance->CNT = offset;
+
+    cpu_exit_critical(prim);
 }
 
 // Function that sets the CPR circular tracking encoder count to a desired 32-bit value.

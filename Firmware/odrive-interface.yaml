@@ -1295,8 +1295,8 @@ interfaces:
         type: int32
         doc: The last (valid) position from an absolute encoder, if used.
       hw_zero_pos_offset:
-        type: int32
-        doc: The last (valid) position from an absolute encoder, if used.
+        type: readonly int32
+        doc: offset encoder zero to system zero
       spi_error_rate: readonly float32
       
       config:
