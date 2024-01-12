@@ -1294,7 +1294,11 @@ interfaces:
       pos_abs:
         type: int32
         doc: The last (valid) position from an absolute encoder, if used.
+      hw_zero_pos_offset:
+        type: int32
+        doc: The last (valid) position from an absolute encoder, if used.
       spi_error_rate: readonly float32
+      
       config:
         c_is_class: False
         attributes:

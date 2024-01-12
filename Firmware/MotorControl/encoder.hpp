@@ -44,8 +44,6 @@ public:
         uint16_t sincos_gpio_pin_sin = 3;
         uint16_t sincos_gpio_pin_cos = 4;
 
-        int32_t hw_zero_pos_offset = 0;
-
 
         // custom setters
         Encoder* parent = nullptr;
@@ -116,6 +114,8 @@ public:
     int32_t pos_abs_turns = 0;
     float spi_error_rate_ = 0.0f;
     uint64_t count_offset = 0;
+
+    int32_t hw_zero_pos_offset_ = 0;
 
     OutputPort<float> pos_estimate_ = 0.0f; // [turn]
     OutputPort<float> vel_estimate_ = 0.0f; // [turn/s]

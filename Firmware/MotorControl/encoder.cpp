@@ -154,15 +154,8 @@ void Encoder::set_linear_count(int32_t count) {
 }
 
 void Encoder::set_hw_zero_pos_offset(int32_t offset) {
-    // Disable interrupts to make a critical section to avoid race condition
-    uint32_t prim = cpu_enter_critical();
-
-    is_ready_ = false;
-
     // Update states
-    config_.hw_zero_pos_offset = offset;
-
-    cpu_exit_critical(prim);
+    hw_zero_pos_offset_ = offset;
 }
 
 // Function that sets the CPR circular tracking encoder count to a desired 32-bit value.
@@ -811,8 +804,8 @@ bool Encoder::update() {
         } break;
     }
 
-    shadow_count_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched;
-    count_in_cpr_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched - config_.hw_zero_pos_offset;
+    shadow_count_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched - hw_zero_pos_offset_;
+    count_in_cpr_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched - hw_zero_pos_offset_;
     count_in_cpr_ = mod(count_in_cpr_, config_.cpr);
 
     if(mode_ & MODE_FLAG_ABS)
@@ -849,8 +842,8 @@ bool Encoder::update() {
     }
 
     // Outputs from Encoder for Controller
-    pos_estimate_ = (pos_estimate_counts_ - config_.hw_zero_pos_offset) / (float)config_.cpr;
-    vel_estimate_ = vel_estimate_counts_ / (float)config_.cpr;
+    pos_estimate_ = (pos_estimate_counts_) / (float)config_.cpr;
+    vel_estimate_ = (vel_estimate_counts_) / (float)config_.cpr;
     
     // TODO: we should strictly require that this value is from the previous iteration
     // to avoid spinout scenarios. However that requires a proper way to reset
