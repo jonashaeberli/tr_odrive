@@ -32,7 +32,6 @@ public:
                                     // be determined by run_offset_calibration.
                                     // In this case the encoder will enter ready
                                     // state as soon as the index is found.
-        bool set_hw_zero_pos = false; //Set zero on encoder while true
         int32_t direction = 0; // direction with respect to motor
         bool use_index_offset = true;
         bool enable_phase_interpolation = true; // Use velocity to interpolate inside the count state
@@ -44,6 +43,8 @@ public:
         uint16_t abs_spi_cs_gpio_pin = 1;
         uint16_t sincos_gpio_pin_sin = 3;
         uint16_t sincos_gpio_pin_cos = 4;
+
+        uint64_t hw_zero_pos_offset = 0;
 
 
         // custom setters
@@ -72,8 +73,6 @@ public:
     void set_linear_count(int32_t count);
     void set_circular_count(int32_t count, bool update_offset);
     bool calib_enc_offset(float voltage_magnitude);
-
-    void set_hw_zero_pos(); // sets a new zero position on the encoder
 
     bool run_index_search();
     bool run_direction_find();
@@ -114,6 +113,7 @@ public:
     int32_t pos_abs_ = 0;
     int32_t pos_abs_turns = 0;
     float spi_error_rate_ = 0.0f;
+    uint64_t count_offset = 0;
 
     OutputPort<float> pos_estimate_ = 0.0f; // [turn]
     OutputPort<float> vel_estimate_ = 0.0f; // [turn/s]
