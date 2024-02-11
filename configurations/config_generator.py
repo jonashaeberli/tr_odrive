@@ -49,7 +49,6 @@ def generate_config(motor_type,
         "control_mode": "CONTROL_MODE_POSITION_CONTROL",
         "vel_limit": vel_limit + 4,
         "input_mode": "INPUT_MODE_TRAP_TRAJ",
-        "input_mode": "INPUT_MODE_POS_FILTER",
         "input_filter_bandwidth": input_filter_bandwidth,
     }
 
