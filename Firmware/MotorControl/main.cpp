@@ -546,7 +546,7 @@ static void rtos_main(void*) {
     //    axis.motor_.setup();
     //}
 
-    axis[0].motor_.setup();    
+    axes[0].motor_.setup();
 
     for(auto& axis: axes){
         axis.encoder_.setup();

@@ -42,11 +42,11 @@ void Encoder::setup() {
     spi_task_.config = {
         .Mode = SPI_MODE_MASTER,
         .Direction = SPI_DIRECTION_2LINES,
-        .DataSize = SPI_DATASIZE_16BIT,
+        .DataSize = SPI_DATASIZE_8BIT,
         .CLKPolarity = (mode_ == MODE_SPI_ABS_AEAT || mode_ == MODE_SPI_ABS_MA732) ? SPI_POLARITY_HIGH : SPI_POLARITY_LOW,
         .CLKPhase = SPI_PHASE_2EDGE,
         .NSS = SPI_NSS_SOFT,
-        .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16,
+        .BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32,
         .FirstBit = SPI_FIRSTBIT_MSB,
         .TIMode = SPI_TIMODE_DISABLE,
         .CRCCalculation = SPI_CRCCALCULATION_DISABLE,
@@ -529,9 +529,9 @@ bool Encoder::abs_spi_start_transaction() {
     if (mode_ & MODE_FLAG_ABS){
         if (Stm32SpiArbiter::acquire_task(&spi_task_)) {
             spi_task_.ncs_gpio = abs_spi_cs_gpio_;
-            spi_task_.tx_buf = (uint8_t*)abs_spi_dma_tx_;
-            spi_task_.rx_buf = (uint8_t*)abs_spi_dma_rx_;
-            spi_task_.length = 1;
+            spi_task_.tx_buf = (uint8_t*)abs_spi_dma_tx_multiturn;
+            spi_task_.rx_buf = (uint8_t*)abs_spi_dma_rx_multiturn;
+            spi_task_.length = 5;
             spi_task_.on_complete = [](void* ctx, bool success) { ((Encoder*)ctx)->abs_spi_cb(success); };
             spi_task_.on_complete_ctx = this;
             spi_task_.next = nullptr;
@@ -559,8 +559,33 @@ uint8_t cui_parity(uint16_t v) {
     return ~v & 3;
 }
 
+uint8_t CRC_SPI_97_64bit(uint64_t dw_InputData)
+{
+ uint8_t b_Index = 0;
+ uint8_t b_CRC = 0;
+ b_Index = (uint8_t)((dw_InputData >> 56u) & (uint64_t)0x000000FFu);
+ b_CRC = (uint8_t)((dw_InputData >> 48u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 40u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 32u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 24u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 16u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)((dw_InputData >> 8u) & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = (uint8_t)(dw_InputData & (uint64_t)0x000000FFu);
+ b_Index = b_CRC ^ Encoder::ab_CRC8_LUT[b_Index];
+ b_CRC = Encoder::ab_CRC8_LUT[b_Index];
+ 
+ return b_CRC; 
+}
+
 void Encoder::abs_spi_cb(bool success) {
     uint16_t pos;
+    uint16_t pos_multiturn = 0;
 
     if (!success) {
         goto done;
@@ -586,8 +611,20 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
 
         case MODE_SPI_ABS_RLS: {
-            uint16_t rawVal = abs_spi_dma_rx_[0];
-            pos = (rawVal >> 2) & 0x3fff;
+            uint64_t rawVal = 0x0;
+            uint8_t calculated_crc = 0x0;
+            
+            rawVal =  ((uint64_t)abs_spi_dma_rx_multiturn[0] << 32) + ((uint64_t)abs_spi_dma_rx_multiturn[1] << 24) +
+            ((uint64_t)abs_spi_dma_rx_multiturn[2] << 16) + ((uint64_t)abs_spi_dma_rx_multiturn[3] << 8) +
+            ((uint64_t)abs_spi_dma_rx_multiturn[4] << 0);
+            //Calculate crc with given input data
+            calculated_crc = ~(CRC_SPI_97_64bit(rawVal >> 8))& 0xFF; //inverted CRC
+            //Check if crc is correct
+            if(calculated_crc != abs_spi_dma_rx_multiturn[4]){
+                goto done;
+            }
+            pos_multiturn = rawVal >> 24;
+            pos = (rawVal & 0xFFFC00) >> 10;
         } break;
 
         case MODE_SPI_ABS_MA732: {
@@ -601,7 +638,9 @@ void Encoder::abs_spi_cb(bool success) {
         } break;
     }
 
-    pos_abs_ = pos;
+    pos_abs_turns = pos_multiturn - 32768;
+    pos_abs_ = pos;   
+
     abs_spi_pos_updated_ = true;
     if (config_.pre_calibrated) {
         is_ready_ = true;
@@ -652,6 +691,7 @@ bool Encoder::update() {
     // update internal encoder state.
     int32_t delta_enc = 0;
     int32_t pos_abs_latched = pos_abs_; //LATCH
+    int32_t pos_abs_turns_latched = pos_abs_turns; //LATCH
 
     switch (mode_) {
         case MODE_INCREMENTAL: {
@@ -759,8 +799,8 @@ bool Encoder::update() {
         } break;
     }
 
-    shadow_count_ += delta_enc;
-    count_in_cpr_ += delta_enc;
+    shadow_count_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched;
+    count_in_cpr_ = (pos_abs_turns_latched * config_.cpr) + pos_abs_latched;
     count_in_cpr_ = mod(count_in_cpr_, config_.cpr);
 
     if(mode_ & MODE_FLAG_ABS)
